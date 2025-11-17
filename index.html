@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de Autodetracciones SGS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #status { margin-top: 15px; font-weight: bold; }
+        button { padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Cargar Archivo Excel para Procesar</h1>
+    <p>Sube tu archivo "SGS Autodetracciones.xlsx" para generar el reporte filtrado.</p>
+    
+    <form id="uploadForm">
+        <input type="file" id="excelFile" name="file" accept=".xlsx, .xls" required>
+        <button type="submit">Procesar y Descargar</button>
+    </form>
+    
+    <div id="status"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('excelFile');
+            const statusElement = document.getElementById('status');
+            
+            if (!fileInput.files.length) {
+                statusElement.textContent = "Por favor, selecciona un archivo.";
+                return;
+            }
+
+            statusElement.textContent = "⚙️ Procesando... por favor espera. Esto puede tardar unos segundos.";
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]); 
+
+            try {
+                // *** Usar la URL completa para evitar problemas de comunicación ***
+                const api_url = 'http://127.0.0.1:5001/procesar_archivo';
+                
+                const response = await fetch(api_url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Descarga del archivo
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    
+                    // Intenta obtener el nombre de descarga desde el encabezado del servidor
+                    let filename = "resultado_procesado.xlsx"; 
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    if (contentDisposition) {
+                        const match = contentDisposition.match(/filename="(.+)"/);
+                        if (match && match[1]) {
+                            filename = match[1];
+                        }
+                    }
+                    
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+
+                    statusElement.textContent = "✅ Procesamiento completado. Archivo descargado.";
+
+                } else {
+                    const errorText = await response.text();
+                    statusElement.textContent = `❌ Error en el servidor (${response.status}): ${errorText.substring(0, 100)}...`;
+                }
+            } catch (error) {
+                statusElement.textContent = `❌ Error de red: ${error.message}. Asegúrate que el servidor Flask esté corriendo en http://127.0.0.1:5001.`;
+            }
+        });
+    </script>
+</body>
+</html>
