@@ -39,8 +39,9 @@
             formData.append('file', fileInput.files[0]); 
 
             try {
-                // *** Usar la URL completa para evitar problemas de comunicación ***
-                const api_url = 'http://127.0.0.1:5001/procesar_archivo';
+                // *** URL ACTUALIZADA para el servidor en Render ***
+                // Apunta a la ruta '/procesar_archivo' en tu dominio de Render.
+                const api_url = 'https://autodetracciones.onrender.com/procesar_archivo'; 
                 
                 const response = await fetch(api_url, {
                     method: 'POST',
@@ -77,7 +78,8 @@
                     statusElement.textContent = `❌ Error en el servidor (${response.status}): ${errorText.substring(0, 100)}...`;
                 }
             } catch (error) {
-                statusElement.textContent = `❌ Error de red: ${error.message}. Asegúrate que el servidor Flask esté corriendo en http://127.0.0.1:5001.`;
+                // Este error ahora solo ocurriría si el servidor de Render está apagado o hay un problema de red.
+                statusElement.textContent = `❌ Error de red: ${error.message}. Asegúrate que el servidor esté activo.`;
             }
         });
     </script>
