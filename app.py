@@ -1,14 +1,29 @@
-# app.py
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, render_template_string
 import pandas as pd 
 import numpy as np
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl import load_workbook
 from io import BytesIO
-from flask_cors import CORS # Importante para evitar el error de red
+from flask_cors import CORS 
 
 app = Flask(__name__)
-CORS(app) # Inicializa CORS
+CORS(app) 
+
+# --- CONFIGURACIÓN PARA SERVIR INDEX.HTML ---
+try:
+    # Lee el contenido del HTML. Asegúrate que 'index.html' esté en la misma carpeta.
+    with open('index.html', 'r', encoding='utf-8') as f:
+        INDEX_HTML_CONTENT = f.read()
+except FileNotFoundError:
+    INDEX_HTML_CONTENT = "<h1>Error: index.html no encontrado en el servidor.</h1>"
+except Exception as e:
+    INDEX_HTML_CONTENT = f"<h1>Error al leer index.html: {e}</h1>"
+
+# --- RUTA RAÍZ: Sirve el Front-end ---
+@app.route('/', methods=['GET'])
+def index():
+    """Sirve el contenido del index.html cuando se accede a la URL base."""
+    return render_template_string(INDEX_HTML_CONTENT)
 
 # --- FUNCIONES AUXILIARES ---
 
@@ -117,8 +132,8 @@ def procesar_archivo():
     df_usd = df_usd.sort_values(by='XXX_last6')
     
     # 4. Guardar los datos en un búfer (BytesIO)
-    output = BytesIO()
-    nombre_salida = 'SGS Autodetracciones_filtrado_final.xlsx'
+    output = BytesIO() # <--- ¡Definición de 'output' corregida!
+    nombre_salida = 'SGS Autodetracciones_filtrado_final.xlsx' # <--- ¡Definición de 'nombre_salida' corregida!
 
     # Guardar a Excel en el búfer
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -139,5 +154,5 @@ def procesar_archivo():
     )
 
 if __name__ == '__main__':
-    # Ejecutar en el puerto 5001. Cambia este puerto si tienes conflicto.
+    # Ejecutar en el puerto 5001.
     app.run(debug=True, port=5001)
