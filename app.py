@@ -4,10 +4,11 @@ import numpy as np
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl import load_workbook
 from io import BytesIO
-from flask_cors import CORS 
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app) 
+# Configuración explícita de CORS para permitir todas las peticiones (origen, métodos, headers)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # --- CONFIGURACIÓN PARA SERVIR INDEX.HTML ---
 try:
